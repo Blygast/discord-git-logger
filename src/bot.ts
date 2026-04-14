@@ -6,7 +6,7 @@ export const client = new Client({
 
 let isReady = false;
 
-client.once("ready", () => {
+client.once("clientReady", () => {
   isReady = true;
   console.log(`Logged in as ${client.user?.tag}`);
 });
