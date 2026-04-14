@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import { parsePushPayload } from "./handlers/pushHandler";
 import { buildPushMessage } from "./formatters/embedFormatter";
 import { botIsReady, sendEmbed } from "./bot";
+import { saveLastPushId } from "./storage/pushLog";
 
 export function createServer(channelId: string) {
   const app = express();
@@ -42,6 +43,8 @@ export function createServer(channelId: string) {
         res.status(200).json({ message: "No branch updates" });
         return;
       }
+
+      saveLastPushId(parsed.pushId);
 
       console.log(
         `Received push #${parsed.pushId} to ${parsed.repositoryName} by ${parsed.pushedBy} — ${parsed.branches.length} branch(es), ${parsed.commits.length} commit(s)`

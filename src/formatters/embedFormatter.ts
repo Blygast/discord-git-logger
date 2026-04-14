@@ -1,16 +1,27 @@
 import { EmbedBuilder } from "discord.js";
 import { ParsedPush, BranchInfo, CommitInfo } from "../handlers/pushHandler";
 
+export interface PushData {
+  pushedBy: string;
+  repositoryName: string;
+  repositoryUrl: string;
+  projectName: string;
+  pushId: number;
+  pushDate: string;
+  pushUrl: string;
+  branches: { name: string; isNew: boolean }[];
+  commits: { id: string; shortId: string; message: string; author: string; date: string; url: string }[];
+}
+
 const COLORS = {
   newBranch: 0x2ecc71,
   updated: 0x3498db,
   mixed: 0x9b59b6,
-  deleted: 0xe74c3c,
 } as const;
 
 const MAX_COMMITS_SHOWN = 10;
 
-function formatBranches(branches: BranchInfo[]): string {
+function formatBranches(branches: { name: string; isNew: boolean }[]): string {
   if (branches.length === 0) return "None";
 
   return branches
@@ -21,7 +32,7 @@ function formatBranches(branches: BranchInfo[]): string {
     .join("\n");
 }
 
-function formatCommits(commits: CommitInfo[]): string {
+function formatCommits(commits: { id: string; shortId: string; message: string; author: string; date: string; url: string }[]): string {
   if (commits.length === 0) return "No commits";
 
   const shown = commits.slice(0, MAX_COMMITS_SHOWN);
@@ -36,7 +47,7 @@ function formatCommits(commits: CommitInfo[]): string {
   return lines.join("\n");
 }
 
-function pickColor(branches: BranchInfo[]): number {
+function pickColor(branches: { name: string; isNew: boolean }[]): number {
   const hasNew = branches.some((b) => b.isNew);
   const hasUpdated = branches.some((b) => !b.isNew);
 
@@ -50,7 +61,7 @@ function formatDate(isoDate: string): string {
   return d.toUTCString();
 }
 
-export function buildEmbed(push: ParsedPush): EmbedBuilder {
+export function buildEmbed(push: PushData): EmbedBuilder {
   const totalCommits = push.commits.length;
   const color = pickColor(push.branches);
 
@@ -97,13 +108,17 @@ export function buildEmbed(push: ParsedPush): EmbedBuilder {
     });
 }
 
-export function buildPushMessage(push: ParsedPush): {
+export function buildPushMessage(push: PushData, isCatchUp = false): {
   content: string;
   embeds: EmbedBuilder[];
 } {
   const hasNew = push.branches.some((b) => b.isNew);
 
   let content = "@everyone";
+
+  if (isCatchUp) {
+    content = "@everyone — :warning: **Missed while offline**";
+  }
 
   if (hasNew) {
     const newBranches = push.branches
