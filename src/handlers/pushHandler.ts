@@ -98,15 +98,19 @@ export function parsePushPayload(payload: AzureDevOpsPayload): ParsedPush | null
 
   const { resource } = payload;
 
+  if (!resource) {
+    return null;
+  }
+
   return {
-    pushedBy: resource.pushedBy.displayName,
-    repositoryName: resource.repository.name,
-    repositoryUrl: resource.repository.remoteUrl,
-    projectName: resource.repository.project.name,
-    pushId: resource.pushId,
-    pushDate: resource.date,
-    pushUrl: resource.url,
-    branches: parseBranches(resource.refUpdates),
-    commits: parseCommits(resource.commits),
+    pushedBy: resource.pushedBy?.displayName ?? "Unknown",
+    repositoryName: resource.repository?.name ?? "Unknown",
+    repositoryUrl: resource.repository?.remoteUrl ?? "",
+    projectName: resource.repository?.project?.name ?? "Unknown",
+    pushId: resource.pushId ?? 0,
+    pushDate: resource.date ?? new Date().toISOString(),
+    pushUrl: resource.url ?? "",
+    branches: parseBranches(resource.refUpdates || []),
+    commits: parseCommits(resource.commits || []),
   };
 }
