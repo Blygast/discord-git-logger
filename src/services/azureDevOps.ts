@@ -100,12 +100,13 @@ export async function fetchMissedPushes(
   pat: string,
   afterPushId: number
 ): Promise<MissedPush[]> {
-  const encodedProject = encodeURIComponent(project);
-  const apiUrl = `https://dev.azure.com/${org}/${encodedProject}/_apis/git/repositories/${repo}/pushes?api-version=7.0&$top=50`;
+  const apiUrl = `https://dev.azure.com/${org}/${project}/_apis/git/repositories/${repo}/pushes?api-version=7.0&$top=50`;
 
   console.log(
     `Fetching missed pushes from Azure DevOps (after push #${afterPushId})...`
   );
+
+  console.log(`API URL: ${apiUrl}`);
 
   const auth = Buffer.from(`:${pat}`).toString("base64");
 
