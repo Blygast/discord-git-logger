@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import { parsePushPayload } from "./handlers/pushHandler";
 import { buildPushMessage } from "./formatters/embedFormatter";
 import { botIsReady, sendEmbed } from "./bot";
-import { saveLastPushId } from "./storage/pushLog";
+import { saveLastPushId, getLastPushId } from "./storage/pushLog";
 
 export function createServer(channelId: string) {
   const app = express();
@@ -41,6 +41,12 @@ export function createServer(channelId: string) {
       if (parsed.branches.length === 0) {
         console.log("Push has no branch updates (possibly a delete), skipping");
         res.status(200).json({ message: "No branch updates" });
+        return;
+      }
+
+      if (parsed.pushId <= getLastPushId()) {
+        console.log(`Push #${parsed.pushId} already processed, skipping`);
+        res.status(200).json({ message: "Duplicate" });
         return;
       }
 

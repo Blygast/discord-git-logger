@@ -4,7 +4,7 @@ dotenv.config();
 import { login, client } from "./bot";
 import { createServer } from "./server";
 import { fetchMissedPushes } from "./services/azureDevOps";
-import { getLastPushId, saveLastPushId } from "./storage/pushLog";
+import { getLastPushId, saveLastPushId, recoverLastPushIdFromDiscord } from "./storage/pushLog";
 import { buildPushMessage } from "./formatters/embedFormatter";
 import { sendEmbed } from "./bot";
 
@@ -27,8 +27,11 @@ function azureConfigured(): boolean {
 }
 
 async function catchUpMissedPushes(): Promise<void> {
+  const recovered = await recoverLastPushIdFromDiscord(client, CHANNEL_ID);
+  saveLastPushId(recovered);
+
   if (!azureConfigured()) {
-    console.log("Azure DevOps API not configured, skipping catch-up");
+    console.log("Azure DevOps API not configured — using Discord history for dedup only");
     return;
   }
 
